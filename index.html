@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>술술카드 Web</title>
+  <meta name="theme-color" content="#0b0b10" />
+  <style>
+    :root{
+      --bg1:#0b0b10;
+      --bg2:#121222;
+      --card:#17172a;
+      --card2:#1f1f35;
+      --text:#f4f4ff;
+      --muted: rgba(244,244,255,.45);
+      --border: rgba(255,255,255,.10);
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      color:var(--text);
+      min-height:100svh;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(120,80,255,.16), transparent 55%),
+        radial-gradient(1000px 600px at 90% 30%, rgba(0,220,180,.10), transparent 55%),
+        radial-gradient(800px 500px at 45% 95%, rgba(255,180,0,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
+    }
+    .wrap{
+      width:min(720px, 100%);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    header{
+      padding: 6px 4px;
+    }
+    .title{
+      font-size: 18px;
+      letter-spacing:-.3px;
+      font-weight: 750;
+      opacity:.95;
+    }
+
+    .card{
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      background:
+        radial-gradient(1000px 500px at 30% 10%, rgba(140,100,255,.16), transparent 55%),
+        radial-gradient(900px 450px at 80% 90%, rgba(0,220,180,.10), transparent 60%),
+        linear-gradient(180deg, var(--card), var(--card2));
+    }
+    .cardInner{ padding: 18px 18px 16px; }
+
+    .question{
+      font-size: clamp(22px, 4.2vw, 34px);
+      font-weight: 850;
+      letter-spacing: -0.7px;
+      line-height: 1.22;
+      margin: 6px 0 12px;
+      word-break: keep-all;
+    }
+    .hint{
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+      min-height: 20px;
+      margin: 0;
+      word-break: keep-all;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+    .actions2{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      padding: 0 12px 12px;
+      background: rgba(255,255,255,.03);
+    }
+
+    button{
+      appearance:none;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      border-radius: 16px;
+      padding: 14px 12px;
+      font-size: 14px;
+      font-weight: 750;
+      letter-spacing:-.2px;
+      cursor:pointer;
+      transition: transform .06s ease, background .15s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active{ transform: scale(.98); }
+    button.primary{
+      background: rgba(120,80,255,.22);
+      border-color: rgba(140,100,255,.35);
+    }
+    button.danger{
+      background: rgba(255,80,120,.14);
+      border-color: rgba(255,80,120,.22);
+    }
+    button.ghost{ background: rgba(255,255,255,.04); }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+
+    footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 0 4px;
+      color: rgba(244,244,255,.38);
+      font-size:12px;
+    }
+
+    /* 시작 오버레이 */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
+      background: rgba(0,0,0,.30);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 60;
+    }
+    .overlayCard{
+      width:min(720px, 100%);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 26px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      overflow:hidden;
+      background:
+        radial-gradient(1000px 600px at 20% 0%, rgba(140,100,255,.20), transparent 55%),
+        radial-gradient(900px 500px at 90% 100%, rgba(0,220,180,.12), transparent 60%),
+        linear-gradient(180deg, rgba(25,25,45,.92), rgba(18,18,34,.92));
+    }
+    .overlayInner{ padding: 18px; }
+    .overlayTitle{
+      font-size: 22px;
+      font-weight: 850;
+      letter-spacing:-.6px;
+      margin: 6px 0;
+    }
+    .overlayActions{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      padding: 0 18px 18px;
+      background: rgba(255,255,255,.03);
+      border-top: 1px solid rgba(255,255,255,.10);
+    }
+    .overlayActions button{ padding: 14px 12px; border-radius: 18px; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">술술카드 Web</div>
+    </header>
+
+    <section class="card" aria-live="polite">
+      <div class="cardInner">
+        <div class="question" id="question">게임을 시작해줘!</div>
+        <div class="hint" id="hint"></div>
+      </div>
+
+      <div class="actions">
+        <button class="ghost" id="prevBtn" disabled>이전</button>
+        <button class="primary" id="nextBtn" disabled>다음</button>
+      </div>
+      <div class="actions2">
+        <button class="danger" id="resetBtn">리셋</button>
+      </div>
+    </section>
+
+    <footer>
+      <div></div>
+      <div>by 신광배</div>
+    </footer>
+  </div>
+
+  <!-- 시작 오버레이 -->
+  <div class="overlay" id="startOverlay" role="dialog" aria-modal="true" aria-label="게임 시작">
+    <div class="overlayCard">
+      <div class="overlayInner">
+        <div class="overlayTitle">오늘은 술술~</div>
+      </div>
+      <div class="overlayActions">
+        <button class="primary" id="startBtn">게임 시작</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const CARDS = [
+  // ====== (A) 사용자가 제공한 "실제 카드" 40개 ======
+  { text:"눈치게임해서 진 사람 마셔!", hint:"" },
+  { text:"무인도에 떨어져도 악착같이 살아남을 것 같은 사람 마셔!", hint:"하나, 둘, 셋 하면 지목" },
+  { text:"잠들기 전에 내일 먹을 음식 생각하고 잠들 것 같은 사람 마셔!", hint:"하나, 둘, 셋 하면 지목" },
+  { text:"브랜드 로고 티 입은 사람 마셔!", hint:"" },
+  { text:"1회 면제권", hint:"필요한 순간 사용하자!" },
+  { text:"지금 입에 안주 있는 사람 마셔!", hint:"" },
+  { text:"가위바위보해서 진 사람 마셔!", hint:"" },
+  { text:"카톡 프로필에 꽃 있는 사람 마셔!", hint:"" },
+  { text:"오늘 가장 늦게 도착한 사람 마셔!", hint:"" },
+  { text:"나이키 신발 신은 사람 마셔!", hint:"" },
+  { text:"단추 달린 옷 입은 사람 마셔!", hint:"" },
+  { text:"손톱에 매니큐어 칠한 사람 마셔!", hint:"" },
+  { text:"술병 돌려 지목당한 사람 마셔!", hint:"" },
+  { text:"섹시한 속옷을 즐겨 입을 것 같은 사람 마셔!", hint:"하나, 둘, 셋 하면 지목" },
+  { text:"마주 앉은 사람 마셔!", hint:"" },
+  { text:"베스킨라빈스 써리원 해서 진 사람 마셔!", hint:"" },
+  { text:"폰 배경화면 동물인 사람 마셔!", hint:"" },
+  { text:"집이 가장 가까운 사람 마셔!", hint:"" },
+  { text:"경마 게임해서 진 사람 마셔!", hint:"" },
+  { text:"지금 웃고 있는 사람 마셔!", hint:"" },
+  { text:"폰에 이성친구 번호 가장 많을 것 같은 사람 마셔!", hint:"하나, 둘, 셋 하면 지목" },
+  { text:"10년 뒤 꼰대 소리를 가장 많이 들을 것 같은 사람 마셔!", hint:"하나, 둘, 셋 하면 지목" },
+  { text:"눈싸움해서 진 사람 마셔!", hint:"1명을 지목해서 게임 시작 후 진 사람 벌칙" },
+  { text:"더게임오브데스 해서 진 사람 마셔", hint:"" },
+  { text:"가위바위보 해서 진 사람 마셔", hint:"1명을 지목해서 게임 시작 후 진 사람 벌칙" },
+  { text:"지금부터 3분간 외래어 금지! 어긴 사람 마셔!", hint:"" },
+  { text:"끝말잇기해서 진 사람 마셔!", hint:"" },
+  { text:"카톡 안읽은 메시지 가장 많은 사람 마셔!", hint:"" },
+  { text:"앞 사람과 팔씨름 해서 진 사람 마셔!", hint:"" },
+  { text:"가장 최근 해외여행 다녀온 사람 마셔!", hint:"" },
+  { text:"MBTI가 E로 시작하는 사람 모두 마셔!", hint:"" },
+  { text:"휴대폰에 저장된 사진 개수가 가장 많은 사람 마셔!", hint:"" },
+  { text:"4인조 이상의 여자 아이돌 말하기 시작!", hint:"" },
+  { text:"아직도 전 애인 번호 가지고 있을 것 같은 사람 마셔!", hint:"하나, 둘, 셋 하면 지목" },
+  { text:"어렸을 때 부모님 속 깨나 썩였을 것 같은 사람 마셔!", hint:"" },
+  { text:"한국영화 감독 이름 말하기 시작!", hint:"" },
+  { text:"국내 치킨 브랜드 말하기 시작!", hint:"" },
+  { text:"나라 별 인사말 말하기 시작!", hint:"" },
+  { text:"'스'로 끝나는 단어 말하기 시작!", hint:"" },
+  { text:"구독자 100만 이상인 유튜버 말하기 시작!", hint:"" },
+
+  // ====== (B) 사용자가 채택한 추가 1차 (9개) ======
+  { text:"회사/학교에서 은근히 인기 많을 것 같은 사람 마셔", hint:"하나, 둘, 셋 하면 지목" },
+  { text:"오늘 액세서리 착용한 사람 마셔", hint:"" },
+  { text:"휴대폰 배터리 40% 이하인 사람 마셔", hint:"" },
+  { text:"휴대폰 가장 최근 사진 공개 → 가장 웃긴 사람 마셔", hint:"다 같이 보고 선택" },
+  { text:"라면 이름 말하기 시작", hint:"" },
+  { text:"영화 제목 말하기 시작", hint:"" },
+  { text:"과일 이름 말하기 시작", hint:"" },
+  { text:"오른쪽 사람 대신 마시기", hint:"" },
+  { text:"오늘 첫 건배 다시 하기", hint:"" },
+
+  // ====== (C) 사용자가 채택한 추가 2차 (10개) ======
+  { text:"술 마시면 연락 안 될 것 같은 사람 마셔", hint:"" },
+  { text:"은근히 계획형 인간일 것 같은 사람 마셔", hint:"" },
+  { text:"오늘 술자리 끝까지 살아남을 것 같은 사람 마셔", hint:"" },
+  { text:"스마트워치 착용한 사람 마셔", hint:"" },
+  { text:"오늘 카페 들렀다 온 사람 마셔", hint:"" },
+  { text:"여기서 제일 잠 많을 것 같은 사람 마셔", hint:"" },
+  { text:"서울 동네 이름 말하기 시작", hint:"" },
+  { text:"편의점 상품 말하기 시작", hint:"" },
+  { text:"드라마 제목 말하기 시작", hint:"" },
+  { text:"술 안주 메뉴 말하기 시작", hint:"" },
+
+  // ====== (D) 사용자가 채택한 추가 3차 (6개) ======
+  { text:"단톡방에서 읽씹 제일 잘할 것 같은 사람 마셔", hint:"" },
+  { text:"약속 잡을 때 제일 바쁜 척할 것 같은 사람 마셔", hint:"" },
+  { text:"다음 술자리를 먼저 제안할 것 같은 사람 마셔", hint:"" },
+  { text:"휴대폰 알람 목록 공개 → 가장 많은 사람 마셔", hint:"다 같이 보고 선택" },
+  { text:"최근 네이버 검색어 1개 공개 → 가장 현실적인 사람 마셔", hint:"다 같이 보고 선택" },
+  { text:"아이스크림 종류 말하기 시작", hint:"" },
+];
+
+const STORAGE_KEY = "soolsool_web_v3";
+
+let deck = [];
+let cursor = -1;
+let history = [];
+
+const $q = document.getElementById("question");
+const $h = document.getElementById("hint");
+
+const $prevBtn = document.getElementById("prevBtn");
+const $nextBtn = document.getElementById("nextBtn");
+const $resetBtn = document.getElementById("resetBtn");
+
+const $overlay = document.getElementById("startOverlay");
+const $startBtn = document.getElementById("startBtn");
+
+function shuffleArray(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function saveState(){
+  const state = { deck, cursor, history };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const s = JSON.parse(raw);
+    if(!s || !Array.isArray(s.deck) || typeof s.cursor !== "number") return false;
+    if(s.deck.length !== CARDS.length) return false;
+    deck = s.deck;
+    cursor = s.cursor;
+    history = Array.isArray(s.history) ? s.history : [];
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function buildDeck(){
+  deck = shuffleArray([...Array(CARDS.length).keys()]);
+  cursor = -1;
+  history = [];
+  saveState();
+}
+
+function currentCard(){
+  if(cursor < 0 || cursor >= deck.length) return null;
+  return CARDS[ deck[cursor] ];
+}
+
+function render(){
+  const card = currentCard();
+  if(!card){
+    $q.textContent = "게임을 시작해줘!";
+    $h.textContent = "";
+    $prevBtn.disabled = true;
+    $nextBtn.disabled = true;
+    return;
+  }
+
+  // '→' 포함 카드(공개/선택형)는 2줄로 표시
+  if(card.text.includes("→")){
+    const parts = card.text.split("→");
+    $q.innerHTML = `${parts[0].trim()}<br><span style="font-weight:700;color:rgba(244,244,255,.55)">→ ${parts[1].trim()}</span>`;
+  } else {
+    $q.textContent = card.text;
+  }
+
+  // 지목형(이미지 선택 포함) 카드에는 공통 안내 문구 추가
+  const isImagePick =
+    /공개|선택|→/.test(card.text)
+    || /것\s*같은\s*사람\s*마셔[!！]?/.test(card.text);
+
+  if(isImagePick){
+    $h.textContent = "하나, 둘, 셋 하고 지목해주세요";
+  } else {
+    $h.textContent = card.hint || "";
+  }
+
+  $prevBtn.disabled = (cursor <= 0);
+  $nextBtn.disabled = (cursor >= deck.length-1);
+}
+
+function next(){
+  if(cursor >= deck.length-1) return;
+  cursor++;
+  history.push(deck[cursor]);
+  saveState();
+  render();
+}
+
+function prev(){
+  if(cursor <= 0) return;
+  cursor--;
+  saveState();
+  render();
+}
+
+function resetAll(){
+  localStorage.removeItem(STORAGE_KEY);
+  buildDeck();
+  cursor = -1;
+  history = [];
+  saveState();
+  render();
+  $overlay.style.display = "flex";
+}
+
+function startGame(){
+  buildDeck();
+  next();
+  $overlay.style.display = "none";
+}
+
+$nextBtn.addEventListener("click", next);
+$prevBtn.addEventListener("click", prev);
+$resetBtn.addEventListener("click", resetAll);
+$startBtn.addEventListener("click", startGame);
+
+window.addEventListener("keydown", (e)=>{
+  if($overlay.style.display !== "none"){
+    if(e.code === "Space" || e.code === "Enter"){
+      e.preventDefault();
+      startGame();
+    }
+    return;
+  }
+  if(e.code === "Space"){
+    e.preventDefault();
+    next();
+  }
+  if(e.code === "ArrowLeft") prev();
+  if(e.code === "ArrowRight") next();
+});
+
+(function init(){
+  const loaded = loadState();
+  if(!loaded){
+    buildDeck();
+  }
+  render();
+  $overlay.style.display = "flex";
+})();
+</script>
+</body>
+</html>
