@@ -376,11 +376,20 @@ function render(){
   }
 
   $prevBtn.disabled = (cursor <= 0);
-  $nextBtn.disabled = (cursor >= deck.length-1);
+  $nextBtn.disabled = false;
+}
+
+// 남은 카드가 없으면 새로 섞어서 처음부터 (직전 카드가 바로 또 나오지 않게)
+function reshuffleDeck(){
+  const last = deck[cursor];
+  buildDeck();
+  if(deck.length > 1 && deck[0] === last){
+    [deck[0], deck[1]] = [deck[1], deck[0]];
+  }
 }
 
 function next(){
-  if(cursor >= deck.length-1) return;
+  if(cursor >= deck.length-1) reshuffleDeck();
   cursor++;
   history.push(deck[cursor]);
   saveState();
@@ -394,18 +403,15 @@ function prev(){
   render();
 }
 
+// 리셋: 이미 나온 카드는 다시 안 나오게 남은 덱은 그대로 두고 시작 화면으로
 function resetAll(){
-  localStorage.removeItem(STORAGE_KEY);
-  buildDeck();
-  cursor = -1;
-  history = [];
-  saveState();
+  try{ sessionStorage.removeItem(STORAGE_KEY + "_playing"); }catch(e){}
   render();
   $overlay.style.display = "flex";
 }
 
 function startGame(){
-  buildDeck();
+  // 같은 폰에서 다시 시작하면 남은 카드부터 이어서 (다 쓰면 next()에서 새로 섞음)
   next();
   $overlay.style.display = "none";
   try{ sessionStorage.setItem(STORAGE_KEY + "_playing", "1"); }catch(e){}
