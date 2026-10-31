@@ -18,6 +18,7 @@
       --radius: 22px;
     }
     *{box-sizing:border-box}
+    html,body{overscroll-behavior-y:none} /* 당겨서 새로고침 막기 */
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
@@ -407,6 +408,7 @@ function startGame(){
   buildDeck();
   next();
   $overlay.style.display = "none";
+  try{ sessionStorage.setItem(STORAGE_KEY + "_playing", "1"); }catch(e){}
 }
 
 $nextBtn.addEventListener("click", next);
@@ -436,7 +438,10 @@ window.addEventListener("keydown", (e)=>{
     buildDeck();
   }
   render();
-  $overlay.style.display = "flex";
+  // 이 탭에서 하던 판을 새로고침(당겨서 새로고침 포함)했으면 시작 화면 없이 그 카드부터 이어서
+  let playing = false;
+  try{ playing = sessionStorage.getItem(STORAGE_KEY + "_playing") === "1"; }catch(e){}
+  $overlay.style.display = loaded && playing && cursor >= 0 ? "none" : "flex";
 })();
 </script>
 <script src="https://kwangbban.vercel.app/hub.js" defer></script>
